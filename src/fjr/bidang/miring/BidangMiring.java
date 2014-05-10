@@ -26,8 +26,8 @@ public class BidangMiring extends Application {
 	Canvas canvas;
 	GraphicsContext gc;
 
-	double rootWidth = 600;
-	double rootHeight = 400;
+	double rootWidth = 800;
+	double rootHeight = 600;
 
 	double xBidangMiring;
 	double yBidangMiring;
@@ -44,6 +44,10 @@ public class BidangMiring extends Application {
 	
 	double xKoordinatBidangMiring[] = new double[3]; 
 	double yKoordinatBidangMiring[] = new double[3]; 
+	
+	
+	double canvasWidth = 900; 
+	double canvasHeight = 900; 
 		
 	boolean drawForClick = false; // menentukan apakah event mouse berada dalam kotak
 
@@ -89,7 +93,7 @@ public class BidangMiring extends Application {
 
 			public void handle(MouseEvent mouseEvent) {
 				if(drawForClick){
-					
+					changeBidangMiringSize(mouseEvent.getX(), mouseEvent.getY());
 				}
 			}
 		});
@@ -101,7 +105,7 @@ public class BidangMiring extends Application {
 	 * untuk mendeteksi apakah event yang bersangkutan 
 	 * berada di dalam are segitiga... 
 	 */
-	double margin = 5;
+	double margin = 10;
 	public boolean isInsideTriangle(double x, double y){
 		if(x < xBidangMiring - margin)
 			return false; 
@@ -115,31 +119,38 @@ public class BidangMiring extends Application {
 	}
 	
 	public void  changeBidangMiringSize(double x, double y){
-		if(x <= xBidangMiring + margin && x >= xBidangMiring - margin){
+		if(x <= xBidangMiring + margin && x >= xBidangMiring - margin){ // kiri
 			if(y < yBidangMiring - margin)
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-			
+			System.out.println("rubah posisi kiri: " + x); 
+			changeXBeginBidangMiring(x);
 		}else if(x <= xBidangMiring + bidangMiringWidth + margin 
-				&& x>= xBidangMiring + bidangMiringWidth- margin){
+				&& x>= xBidangMiring + bidangMiringWidth- margin){// kanan
 			if(y < yBidangMiring - margin)
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-		}else if(y <= yBidangMiring + margin && y >= yBidangMiring - margin){
+			System.out.println("rubah posisi kanan: " + x); 
+			changeXEndBidangMiring(x);
+		}else if(y <= yBidangMiring + margin && y >= yBidangMiring - margin){ // atas 
 			if(x < xBidangMiring - margin)
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
+			System.out.println("rubah posisi atas: " + y); 
+			changeYBeginBidangMiring(y);
 		}else if(y <= yBidangMiring + bidangMiringHeight + margin 
-				&& y >= yBidangMiring + bidangMiringHeight - margin){
+				&& y >= yBidangMiring + bidangMiringHeight - margin){ // bawah 
 			if(x < xBidangMiring - margin)
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
+			System.out.println("rubah posisi bawah: " + y); 
+			changeYEndBidangMiring(y);
 		}else{
-			
+			moveBidangMiring(x, y);
 		}
 	}
 
@@ -193,8 +204,32 @@ public class BidangMiring extends Application {
 		
 		redrawBidangMiring();
 	}
+
+	/*
+	 * rubah posisi x akhir dari bidang miring
+	 */
+	public void changeXEndBidangMiring(double x){
+		double changeX =  x - xBidangMiring; 
+		changeWidthBidangMiring(changeX);
+	}
+
+	public void changeYEndBidangMiring(double y){
+		double changeY = y - yBidangMiring;
+		changeHeightBidangMiring(changeY);
+	}
+	
+	public void changeXBeginBidangMiring(double x){
+		double changeX = xBidangMiring + bidangMiringWidth - x;
+		changeWidthBidangMiring(changeX);
+	}
 	
 
+	public void changeYBeginBidangMiring(double y){
+		double changeY = yBidangMiring + bidangMiringHeight - y; 
+		changeHeightBidangMiring(changeY);
+	}
+	
+	
 	public void changeXBidangMiring(double x){
 		xBidangMiring = x; 
 		setShapeProperty();
@@ -208,19 +243,17 @@ public class BidangMiring extends Application {
 		redrawBidangMiring();
 	}
 	
+	public void moveBidangMiring(double x, double y){
+		xBidangMiring = xBidangMiring + x; 
+		yBidangMiring = yBidangMiring + y;
+	}
 
 	public void redrawBidangMiring() {
 		gc.setFill(Color.WHITE);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight()); // kosongkan area gambar
 		
-//		if(drawForClick){
-//			
-//			return; 
-//		}
-		
 		//buat bidang miring dengan warna biru
 		gc.setFill(Color.BLUE);
-		
 		gc.fillPolygon(
 				new double[]{
 					xBidangMiring, 
@@ -251,9 +284,7 @@ public class BidangMiring extends Application {
 		if(drawForClick){
 			gc.setStroke(Color.RED);
 			gc.setLineWidth(2); 
-			
 			gc.strokeRect(xBidangMiring, yBidangMiring, bidangMiringWidth, bidangMiringHeight);
-			
 		}
 		
 	}
