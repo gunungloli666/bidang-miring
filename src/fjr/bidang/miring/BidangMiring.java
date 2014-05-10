@@ -1,11 +1,13 @@
 package fjr.bidang.miring;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -39,7 +41,11 @@ public class BidangMiring extends Application {
 	// Array koordinat dari Kotak di isi searah jarum jam mulai dari kotak top-left
 	double kotakKoordinatX[] = new double[4];
 	double kotakKoordinatY[] = new double[4]; 
+	
+	double xKoordinatBidangMiring[] = new double[3]; 
+	double yKoordinatBidangMiring[] = new double[3]; 
 		
+	boolean drawForClick = false; // menentukan apakah event mouse berada dalam kotak
 
 	public void start(Stage primaryStage) throws Exception {
 		Group root = new Group();
@@ -67,7 +73,74 @@ public class BidangMiring extends Application {
 		
 		root.getChildren().add(box); 
 		
+		root.addEventHandler(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent event) {				
+				if(isInsideTriangle(event.getX(), event.getY())){
+					drawForClick = true; 
+				}else{
+					drawForClick = false; 
+				}
+				redrawBidangMiring();
+			}
+		});
+		
+		
+		root.addEventHandler(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
+
+			public void handle(MouseEvent mouseEvent) {
+				if(drawForClick){
+					
+				}
+			}
+		});
 		primaryStage.show();
+	}
+	
+	
+	/*
+	 * untuk mendeteksi apakah event yang bersangkutan 
+	 * berada di dalam are segitiga... 
+	 */
+	double margin = 5;
+	public boolean isInsideTriangle(double x, double y){
+		if(x < xBidangMiring - margin)
+			return false; 
+		if(x > xBidangMiring + bidangMiringWidth +margin)
+			return false;
+		if(y < yBidangMiring - margin)
+			return false; 
+		if(y>yBidangMiring + bidangMiringHeight + margin)
+			return false; 
+		return true; 
+	}
+	
+	public void  changeBidangMiringSize(double x, double y){
+		if(x <= xBidangMiring + margin && x >= xBidangMiring - margin){
+			if(y < yBidangMiring - margin)
+				return ; 
+			if(y>yBidangMiring + bidangMiringHeight + margin)
+				return ; 
+			
+		}else if(x <= xBidangMiring + bidangMiringWidth + margin 
+				&& x>= xBidangMiring + bidangMiringWidth- margin){
+			if(y < yBidangMiring - margin)
+				return ; 
+			if(y>yBidangMiring + bidangMiringHeight + margin)
+				return ; 
+		}else if(y <= yBidangMiring + margin && y >= yBidangMiring - margin){
+			if(x < xBidangMiring - margin)
+				return ; 
+			if(x > xBidangMiring + bidangMiringWidth +margin)
+				return ;
+		}else if(y <= yBidangMiring + bidangMiringHeight + margin 
+				&& y >= yBidangMiring + bidangMiringHeight - margin){
+			if(x < xBidangMiring - margin)
+				return ; 
+			if(x > xBidangMiring + bidangMiringWidth +margin)
+				return ;
+		}else{
+			
+		}
 	}
 
 	public void initShape() {
@@ -84,13 +157,18 @@ public class BidangMiring extends Application {
 	}
 	
 	/*
-	 * Di sini kitak menghitung koordinat sudut Kotak.. karena nilai koordinat Kotak 
-	 * penentuan-nya agak berbeda dengan penentuan Koordinat bidang miring yang relatif mudah
-	 * Maksud saya adalah, yang pertama dihitung adalah titik bottom-left dari kotak
+	 * yang pertama dihitung adalah titik bottom-left dari kotak
 	 * kemudian titik-titik lain menyusul searah jarum jam  
 	 * 
 	 */
-	public void setKotakProperty(){
+	public void setShapeProperty(){
+		xKoordinatBidangMiring[0] = xBidangMiring;
+		yKoordinatBidangMiring[0] = yBidangMiring; 
+		xKoordinatBidangMiring[1] = xBidangMiring + bidangMiringWidth; 
+		yKoordinatBidangMiring[1] = yBidangMiring + bidangMiringHeight; 
+		xKoordinatBidangMiring[2] = xBidangMiring; 
+		yKoordinatBidangMiring[2] = yBidangMiring + bidangMiringHeight; 
+		
 		// bottom-left
 		kotakKoordinatX[3] = xBidangMiring; 
 		kotakKoordinatY[3] = yBidangMiring;
@@ -111,14 +189,34 @@ public class BidangMiring extends Application {
 				* bidangMiringHeight + bidangMiringWidth * bidangMiringWidth);
 		coSudutBidangMiring = Math.PI/ 2.0 - sudutBidangMiring;  // maybe ini bagian dari postulat euclid 
 	
-		setKotakProperty();
+		setShapeProperty();
 		
 		redrawBidangMiring();
 	}
+	
+
+	public void changeXBidangMiring(double x){
+		xBidangMiring = x; 
+		setShapeProperty();
+		redrawBidangMiring();
+	}
+	
+	
+	public void changeYBidangMiring(double y){
+		yBidangMiring = y; 
+		setShapeProperty();
+		redrawBidangMiring();
+	}
+	
 
 	public void redrawBidangMiring() {
 		gc.setFill(Color.WHITE);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight()); // kosongkan area gambar
+		
+//		if(drawForClick){
+//			
+//			return; 
+//		}
 		
 		//buat bidang miring dengan warna biru
 		gc.setFill(Color.BLUE);
@@ -149,6 +247,14 @@ public class BidangMiring extends Application {
 				kotakKoordinatY[2], 
 				kotakKoordinatX[3]
 		}, 4);
+		
+		if(drawForClick){
+			gc.setStroke(Color.RED);
+			gc.setLineWidth(2); 
+			
+			gc.strokeRect(xBidangMiring, yBidangMiring, bidangMiringWidth, bidangMiringHeight);
+			
+		}
 		
 	}
 
