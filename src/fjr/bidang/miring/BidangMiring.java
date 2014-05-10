@@ -51,6 +51,8 @@ public class BidangMiring extends Application {
 		
 	boolean drawForClick = false; // menentukan apakah event mouse berada dalam kotak
 
+	
+	boolean isDragged = false ; // untuk mengatasi keterlambatan mouse keterlambatan mouse dragged event..
 	public void start(Stage primaryStage) throws Exception {
 		Group root = new Group();
 		primaryStage.setScene(new Scene(root, rootWidth, rootHeight));
@@ -77,10 +79,13 @@ public class BidangMiring extends Application {
 		
 		root.getChildren().add(box); 
 		
+	
+		
 		root.addEventHandler(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {				
 				if(isInsideTriangle(event.getX(), event.getY())){
 					drawForClick = true; 
+//					isDragged = true; 
 				}else{
 					drawForClick = false; 
 				}
@@ -90,11 +95,18 @@ public class BidangMiring extends Application {
 		
 		
 		root.addEventHandler(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
-
+			
 			public void handle(MouseEvent mouseEvent) {
+				System.out.println(mouseEvent.getX() + " | "+ mouseEvent.getY());
 				if(drawForClick){
 					changeBidangMiringSize(mouseEvent.getX(), mouseEvent.getY());
 				}
+			}
+		});
+		
+		root.addEventHandler(MouseEvent.MOUSE_RELEASED, new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent arg0) {
+				isDragged = false; 
 			}
 		});
 		primaryStage.show();
@@ -119,12 +131,19 @@ public class BidangMiring extends Application {
 	}
 	
 	public void  changeBidangMiringSize(double x, double y){
+//		double margin; 
+//		if(isDragged){
+//			margin = this.margin *3;
+//		}else{
+//			isDragged = true;
+//			margin = this.margin;
+//		}
 		if(x <= xBidangMiring + margin && x >= xBidangMiring - margin){ // kiri
 			if(y < yBidangMiring - margin)
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-			System.out.println("rubah posisi kiri: " + x); 
+//			System.out.println("rubah posisi kiri: " + x); 
 			changeXBeginBidangMiring(x);
 		}else if(x <= xBidangMiring + bidangMiringWidth + margin 
 				&& x>= xBidangMiring + bidangMiringWidth- margin){// kanan
@@ -132,14 +151,14 @@ public class BidangMiring extends Application {
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-			System.out.println("rubah posisi kanan: " + x); 
+//			System.out.println("rubah posisi kanan: " + x); 
 			changeXEndBidangMiring(x);
 		}else if(y <= yBidangMiring + margin && y >= yBidangMiring - margin){ // atas 
 			if(x < xBidangMiring - margin)
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
-			System.out.println("rubah posisi atas: " + y); 
+//			System.out.println("rubah posisi atas: " + y); 
 			changeYBeginBidangMiring(y);
 		}else if(y <= yBidangMiring + bidangMiringHeight + margin 
 				&& y >= yBidangMiring + bidangMiringHeight - margin){ // bawah 
@@ -147,10 +166,10 @@ public class BidangMiring extends Application {
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
-			System.out.println("rubah posisi bawah: " + y); 
+//			System.out.println("rubah posisi bawah: " + y); 
 			changeYEndBidangMiring(y);
 		}else{
-			moveBidangMiring(x, y);
+//			moveBidangMiring(x, y);
 		}
 	}
 
@@ -173,6 +192,7 @@ public class BidangMiring extends Application {
 	 * 
 	 */
 	public void setShapeProperty(){
+		
 		xKoordinatBidangMiring[0] = xBidangMiring;
 		yKoordinatBidangMiring[0] = yBidangMiring; 
 		xKoordinatBidangMiring[1] = xBidangMiring + bidangMiringWidth; 
@@ -180,9 +200,12 @@ public class BidangMiring extends Application {
 		xKoordinatBidangMiring[2] = xBidangMiring; 
 		yKoordinatBidangMiring[2] = yBidangMiring + bidangMiringHeight; 
 		
+		
+		sudutBidangMiring = Math.atan(Math.abs(bidangMiringHeight)/ Math.abs(bidangMiringWidth));
+		
 		// bottom-left
-		kotakKoordinatX[3] = xBidangMiring; 
-		kotakKoordinatY[3] = yBidangMiring;
+		kotakKoordinatX[3] = xKoordinatBidangMiring[0]; 
+		kotakKoordinatY[3] = yKoordinatBidangMiring[0];
 		//top-left
 		kotakKoordinatX[0] = kotakKoordinatX[3] + kotakHeight * Math.sin(sudutBidangMiring); 
 		kotakKoordinatY[0] = kotakKoordinatY[3] - kotakHeight * Math.cos(sudutBidangMiring); 
@@ -198,6 +221,7 @@ public class BidangMiring extends Application {
 		sudutBidangMiring = Math.atan(bidangMiringHeight / bidangMiringWidth);
 		diagonalBidangMiring = Math.sqrt(bidangMiringHeight
 				* bidangMiringHeight + bidangMiringWidth * bidangMiringWidth);
+		
 		coSudutBidangMiring = Math.PI/ 2.0 - sudutBidangMiring;  // maybe ini bagian dari postulat euclid 
 	
 		setShapeProperty();
@@ -219,13 +243,15 @@ public class BidangMiring extends Application {
 	}
 	
 	public void changeXBeginBidangMiring(double x){
-		double changeX = xBidangMiring + bidangMiringWidth - x;
+		double changeX = bidangMiringWidth +  (xBidangMiring - x ); 
+		xBidangMiring = x; 
 		changeWidthBidangMiring(changeX);
 	}
 	
 
 	public void changeYBeginBidangMiring(double y){
-		double changeY = yBidangMiring + bidangMiringHeight - y; 
+		double changeY = bidangMiringHeight + (yBidangMiring - y); 
+		yBidangMiring = y; 
 		changeHeightBidangMiring(changeY);
 	}
 	
