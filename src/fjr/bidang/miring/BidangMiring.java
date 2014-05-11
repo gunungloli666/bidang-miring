@@ -1,6 +1,10 @@
 package fjr.bidang.miring;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -11,6 +15,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class BidangMiring extends Application {
 
@@ -58,6 +63,12 @@ public class BidangMiring extends Application {
 	double xAnchorBidangMiring;
 	double yAnchorBidangMiring;
 
+	
+	Timeline animasi; 
+	
+	int jumlahLangkah = 20; 
+	
+	
 	enum RUBAH {
 		KANAN, KIRI, ATAS, BAWAH, NONE
 	}
@@ -67,15 +78,33 @@ public class BidangMiring extends Application {
 	boolean geserGaris = false;
 	boolean pindahBidangMiring = false;
 
+	
+	double spasiBidangMiring; 
+	
+	double xAnimasi; 
+	double yAnimasi; 
+	
+	
+	boolean animasiIsRunning = false; 
+	
 	public void start(Stage primaryStage) throws Exception {
 		Group root = new Group();
 		primaryStage.setScene(new Scene(root, rootWidth, rootHeight));
 		canvas = new Canvas(rootWidth, rootHeight);
 		gc = canvas.getGraphicsContext2D();
+		animasi = new Timeline(); 		
+		animasi.setAutoReverse(false);
+		animasi.setCycleCount(Animation.INDEFINITE);
+		animasi.getKeyFrames().addAll(
+				new KeyFrame(Duration.millis(300), new EventHandler<ActionEvent>(){
+					public void handle(ActionEvent arg0) {
+						moveKotak();
+					}
+				})
+				); 
+		
 		initShape();
-
 		calculateShapePosition();
-
 		root.getChildren().add(canvas);
 
 		HBox box = new HBox();
@@ -85,11 +114,29 @@ public class BidangMiring extends Application {
 
 		playAnimasiButton = new Button("PLAY");
 		playAnimasiButton.setPrefWidth(100);
+		playAnimasiButton.setOnAction(new EventHandler<ActionEvent>() {
+
+			public void handle(ActionEvent arg0) {
+				animasi.play();
+			}
+		});
+		
 		box.getChildren().add(playAnimasiButton);
 
 		resetPosisiButton = new Button("RESET");
+		resetPosisiButton.setOnAction(new EventHandler<ActionEvent>() {
+
+			public void handle(ActionEvent arg0) {
+				resetKotak();
+			}
+		});
+		
 		resetPosisiButton.setPrefWidth(100);
+		
+		
 		box.getChildren().add(resetPosisiButton);
+		
+		
 		root.getChildren().add(box);
 		root.addEventHandler(MouseEvent.MOUSE_PRESSED,
 				new EventHandler<MouseEvent>() {
@@ -165,6 +212,32 @@ public class BidangMiring extends Application {
 		primaryStage.show();
 	}
 
+	
+	public void resetKotak(){
+		animasi.stop();
+		numberKotakStep = 0;
+		xAnimasi = xBidangMiring; 
+		yAnimasi = yBidangMiring;
+		setKotakProperty(xBidangMiring, yBidangMiring);
+		redrawBidangMiring();
+	}
+	
+	static int numberKotakStep= 0; 
+	
+	public  void  moveKotak(){
+		if( kotakKoordinatX[3] + kotakWidth * Math.cos(sudutBidangMiring) > bidangMiringWidth + xBidangMiring){
+			animasi.stop();
+//			numberKotakStep = 0; 
+			numberKotakStep--; 
+		}else{
+			setKotakProperty(xBidangMiring, yBidangMiring);
+			redrawBidangMiring();
+			numberKotakStep++; 
+		}
+		
+	}
+	
+	
 	/*
 	 * untuk mendeteksi apakah event yang bersangkutan berada di dalam are
 	 * segitiga...
@@ -224,6 +297,8 @@ public class BidangMiring extends Application {
 		}
 	}
 
+	
+	
 	public void initShape() {
 		xBidangMiring = 50;
 		yBidangMiring = 50;
@@ -234,6 +309,11 @@ public class BidangMiring extends Application {
 		bidangMiringWidth = 450;
 		bidangMiringHeight = 300;
 
+//		spasiBidangMiring = bidangMiringWidth/ jumlahLangkah; 
+		
+		xAnimasi = xBidangMiring; 
+		yAnimasi = yBidangMiring; 
+		
 		setSudutBidangMiring();
 	}
 
@@ -242,34 +322,30 @@ public class BidangMiring extends Application {
 	 * titik-titik lain menyusul searah jarum jam
 	 */
 	public void setShapeProperty() {
-
 		xKoordinatBidangMiring[0] = xBidangMiring;
 		yKoordinatBidangMiring[0] = yBidangMiring;
 		xKoordinatBidangMiring[1] = xBidangMiring + bidangMiringWidth;
 		yKoordinatBidangMiring[1] = yBidangMiring + bidangMiringHeight;
 		xKoordinatBidangMiring[2] = xBidangMiring;
 		yKoordinatBidangMiring[2] = yBidangMiring + bidangMiringHeight;
-
 		sudutBidangMiring = Math.atan(Math.abs(bidangMiringHeight) / Math.abs(bidangMiringWidth));
-
+		
+		setKotakProperty(xKoordinatBidangMiring[0],yKoordinatBidangMiring[0]);
+	}
+	
+	public void setKotakProperty(double x , double y){
 		// bottom-left
-		kotakKoordinatX[3] = xKoordinatBidangMiring[0];
-		kotakKoordinatY[3] = yKoordinatBidangMiring[0];
+		kotakKoordinatX[3] = x + Math.cos(sudutBidangMiring) * spasiBidangMiring * numberKotakStep; ;
+		kotakKoordinatY[3] = y + Math.sin(sudutBidangMiring) * spasiBidangMiring * numberKotakStep;;
 		// top-left
-		kotakKoordinatX[0] = kotakKoordinatX[3] + kotakHeight
-				* Math.sin(sudutBidangMiring);
-		kotakKoordinatY[0] = kotakKoordinatY[3] - kotakHeight
-				* Math.cos(sudutBidangMiring);
+		kotakKoordinatX[0] = kotakKoordinatX[3] + kotakHeight * Math.sin(sudutBidangMiring);
+		kotakKoordinatY[0] = kotakKoordinatY[3] - kotakHeight * Math.cos(sudutBidangMiring);
 		// top-right
-		kotakKoordinatX[1] = kotakKoordinatX[0] + kotakWidth
-				* Math.cos(sudutBidangMiring);
-		kotakKoordinatY[1] = kotakKoordinatY[0] + kotakWidth
-				* Math.sin(sudutBidangMiring);
+		kotakKoordinatX[1] = kotakKoordinatX[0] + kotakWidth * Math.cos(sudutBidangMiring);
+		kotakKoordinatY[1] = kotakKoordinatY[0] + kotakWidth * Math.sin(sudutBidangMiring);
 		// bottom-right
-		kotakKoordinatX[2] = kotakKoordinatX[3] + kotakWidth
-				* Math.cos(sudutBidangMiring);
-		kotakKoordinatY[2] = kotakKoordinatY[3] + kotakWidth
-				* Math.sin(sudutBidangMiring);
+		kotakKoordinatX[2] = kotakKoordinatX[3] + kotakWidth * Math.cos(sudutBidangMiring);
+		kotakKoordinatY[2] = kotakKoordinatY[3] + kotakWidth * Math.sin(sudutBidangMiring);
 	}
 
 	public void setSudutBidangMiring() {
@@ -277,7 +353,10 @@ public class BidangMiring extends Application {
 		diagonalBidangMiring = Math.sqrt(bidangMiringHeight
 				* bidangMiringHeight + bidangMiringWidth * bidangMiringWidth);
 		coSudutBidangMiring = Math.PI / 2.0 - sudutBidangMiring; // maybe ini  bagian  dari postulatc euclid
-		setShapeProperty();
+		setShapeProperty();		
+		spasiBidangMiring = Math.sqrt(bidangMiringHeight *bidangMiringHeight +
+				bidangMiringWidth * bidangMiringWidth)/ jumlahLangkah; 
+
 		redrawBidangMiring();
 	}
 
@@ -333,9 +412,7 @@ public class BidangMiring extends Application {
 
 	public void redrawBidangMiring() {
 		gc.setFill(Color.WHITE);
-		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight()); // kosongkan
-																	// area
-																	// gambar
+		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight()); // kosongkan area gambar
 
 		// buat bidang miring dengan warna biru
 		gc.setFill(Color.BLUE);
@@ -348,14 +425,13 @@ public class BidangMiring extends Application {
 		gc.setFill(Color.BLACK);
 		gc.fillPolygon(new double[] { kotakKoordinatX[0], kotakKoordinatX[1],
 				kotakKoordinatX[2], kotakKoordinatX[3] }, new double[] {
-				kotakKoordinatY[0], kotakKoordinatY[1], kotakKoordinatY[2],
+				kotakKoordinatY[0], kotakKoordinatY[1], kotakKoordinatY[2], 
 				kotakKoordinatY[3] }, 4);
 
 		if (drawForClick) {
 			gc.setStroke(Color.RED);
 			gc.setLineWidth(2);
-			gc.strokeRect(xBidangMiring, yBidangMiring, bidangMiringWidth,
-					bidangMiringHeight);
+			gc.strokeRect(xBidangMiring, yBidangMiring, bidangMiringWidth, bidangMiringHeight);
 		}
 
 	}
