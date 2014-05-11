@@ -56,6 +56,9 @@ public class BidangMiring extends Application {
 	double xAnchor;
 	double yAnchor;
 	
+	double xAnchorBidangMiring; 
+	double yAnchorBidangMiring; 
+	
 	boolean isDragged = false ; // untuk mengatasi keterlambatan mouse keterlambatan mouse dragged event..
 	public void start(Stage primaryStage) throws Exception {
 		Group root = new Group();
@@ -85,6 +88,10 @@ public class BidangMiring extends Application {
 			public void handle(MouseEvent event) {				
 				if(isInsideTriangle(event.getX(), event.getY())){
 					drawForClick = true; 
+					xAnchor = event.getX(); 
+					yAnchor = event.getY(); 
+					xAnchorBidangMiring = xBidangMiring; 
+					yAnchorBidangMiring = yBidangMiring; 
 				}else{
 					drawForClick = false; 
 				}
@@ -157,6 +164,7 @@ public class BidangMiring extends Application {
 		}else{
 			if(isInsideTriangle(x, y)){
 //				moveBidangMiring(x, y);
+				
 			}
 		}
 	}
