@@ -52,6 +52,10 @@ public class BidangMiring extends Application {
 	boolean drawForClick = false; // menentukan apakah event mouse berada dalam kotak
 
 	
+	// anchor untuk memindahkan bidang miring... 
+	double xAnchor;
+	double yAnchor;
+	
 	boolean isDragged = false ; // untuk mengatasi keterlambatan mouse keterlambatan mouse dragged event..
 	public void start(Stage primaryStage) throws Exception {
 		Group root = new Group();
@@ -76,16 +80,11 @@ public class BidangMiring extends Application {
 		resetPosisiButton = new Button("RESET"); 
 		resetPosisiButton.setPrefWidth(100);
 		box.getChildren().add(resetPosisiButton); 
-		
 		root.getChildren().add(box); 
-		
-	
-		
 		root.addEventHandler(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {				
 				if(isInsideTriangle(event.getX(), event.getY())){
 					drawForClick = true; 
-//					isDragged = true; 
 				}else{
 					drawForClick = false; 
 				}
@@ -95,9 +94,7 @@ public class BidangMiring extends Application {
 		
 		
 		root.addEventHandler(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
-			
 			public void handle(MouseEvent mouseEvent) {
-				System.out.println(mouseEvent.getX() + " | "+ mouseEvent.getY());
 				if(drawForClick){
 					changeBidangMiringSize(mouseEvent.getX(), mouseEvent.getY());
 				}
@@ -131,19 +128,11 @@ public class BidangMiring extends Application {
 	}
 	
 	public void  changeBidangMiringSize(double x, double y){
-//		double margin; 
-//		if(isDragged){
-//			margin = this.margin *3;
-//		}else{
-//			isDragged = true;
-//			margin = this.margin;
-//		}
 		if(x <= xBidangMiring + margin && x >= xBidangMiring - margin){ // kiri
 			if(y < yBidangMiring - margin)
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-//			System.out.println("rubah posisi kiri: " + x); 
 			changeXBeginBidangMiring(x);
 		}else if(x <= xBidangMiring + bidangMiringWidth + margin 
 				&& x>= xBidangMiring + bidangMiringWidth- margin){// kanan
@@ -151,14 +140,12 @@ public class BidangMiring extends Application {
 				return ; 
 			if(y>yBidangMiring + bidangMiringHeight + margin)
 				return ; 
-//			System.out.println("rubah posisi kanan: " + x); 
 			changeXEndBidangMiring(x);
 		}else if(y <= yBidangMiring + margin && y >= yBidangMiring - margin){ // atas 
 			if(x < xBidangMiring - margin)
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
-//			System.out.println("rubah posisi atas: " + y); 
 			changeYBeginBidangMiring(y);
 		}else if(y <= yBidangMiring + bidangMiringHeight + margin 
 				&& y >= yBidangMiring + bidangMiringHeight - margin){ // bawah 
@@ -166,10 +153,11 @@ public class BidangMiring extends Application {
 				return ; 
 			if(x > xBidangMiring + bidangMiringWidth +margin)
 				return ;
-//			System.out.println("rubah posisi bawah: " + y); 
 			changeYEndBidangMiring(y);
 		}else{
-//			moveBidangMiring(x, y);
+			if(isInsideTriangle(x, y)){
+//				moveBidangMiring(x, y);
+			}
 		}
 	}
 
@@ -233,7 +221,8 @@ public class BidangMiring extends Application {
 	 * rubah posisi x akhir dari bidang miring
 	 */
 	public void changeXEndBidangMiring(double x){
-		double changeX =  x - xBidangMiring; 
+		double changeX =  x - xBidangMiring;
+//		System.out.println("x change = "+changeX); 
 		changeWidthBidangMiring(changeX);
 	}
 
@@ -247,11 +236,10 @@ public class BidangMiring extends Application {
 		xBidangMiring = x; 
 		changeWidthBidangMiring(changeX);
 	}
-	
 
 	public void changeYBeginBidangMiring(double y){
 		double changeY = bidangMiringHeight + (yBidangMiring - y); 
-		yBidangMiring = y; 
+		yBidangMiring = y;
 		changeHeightBidangMiring(changeY);
 	}
 	
@@ -294,7 +282,7 @@ public class BidangMiring extends Application {
 				3);
 		
 		//buat kotak dengan warna kuning
-		gc.setFill(Color.YELLOW);
+		gc.setFill(Color.BLACK);
 		gc.fillPolygon(new double[]{
 				kotakKoordinatX[0],
 				kotakKoordinatX[1], 
@@ -304,7 +292,7 @@ public class BidangMiring extends Application {
 				kotakKoordinatY[0], 
 				kotakKoordinatY[1], 
 				kotakKoordinatY[2], 
-				kotakKoordinatX[3]
+				kotakKoordinatY[3]
 		}, 4);
 		
 		if(drawForClick){
